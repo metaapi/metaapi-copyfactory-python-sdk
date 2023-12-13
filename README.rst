@@ -147,16 +147,58 @@ In order to configure trade copying you need to:
         ]
     })
 
-    # retrieve list of strategies
-    print(await configuration_api.get_strategies())
-
-    # retrieve list of provider portfolios
-    print(await configuration_api.get_portfolio_strategies())
-
-    # retrieve list of subscribers
-    print(await configuration_api.get_subscribers())
 
 See in-code documentation for full definition of possible configuration options.
+
+Retrieving paginated lists
+==========================
+
+There are two groups of methods to retrieve paginated lists:
+
+- with pagination in infinite scroll style
+- with pagination in a classic style which allows you to calculate page count
+
+They are applied to following entities:
+
+- strategies: ``get_strategies_with_infinite_scroll_pagination`` and ``get_strategies_with_classic_pagination``
+- provider portfolios: ``get_portfolio_strategies_with_infinite_scroll_pagination`` and ``get_portfolio_strategies_with_classic_pagination``
+- subscribers: ``get_subscribers_with_infinite_scroll_pagination`` and ``get_subscribers_with_classic_pagination``
+
+Example of retrieving strategies with pagination in infinite scroll style:
+
+.. code-block:: python
+
+    # paginate strategies, see in-code documentation for full list of filter options available.
+    strategies = await api.metatrader_account_api.get_strategies_with_infinite_scroll_pagination(
+        {'limit': 10, 'offset': 0}
+    )
+
+    # get strategies without filter (returns 1000 strategies max)
+    strategies = await api.metatrader_account_api.get_strategies_with_infinite_scroll_pagination()
+    strategy = None
+
+    for s in strategies:
+        if s['_id'] == 'strategyId':
+            strategy = s
+            break
+
+Example of retrieving strategies with pagination in classic style:
+
+.. code-block:: python
+
+    # paginate strategies, see in-code documentation for full list of filter options available.
+    strategies = await api.metatrader_account_api.get_strategies_with_classic_pagination({'limit': 10, 'offset': 0})
+    strategy = None
+
+    for s in strategies:
+        if s['_id'] == 'strategyId':
+            strategy = s
+            break
+    # number of all strategies matching filter without pagination options
+    print(strategies['count'])
+
+    # get strategies without filter (returns 1000 strategies max)
+    strategies = await api.metatrader_account_api.get_strategies_with_classic_pagination()
 
 Retrieving trade copying history
 ================================

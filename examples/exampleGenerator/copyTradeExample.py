@@ -19,19 +19,29 @@ async def configure_copyfactory():
 
     try:
         master_metaapi_account = await api.metatrader_account_api.get_account(master_account_id)
-        if (master_metaapi_account is None) or master_metaapi_account.copy_factory_roles is None or 'PROVIDER' not \
-                in master_metaapi_account.copy_factory_roles:
-            raise Exception('Please specify PROVIDER copyFactoryRoles value in your MetaApi '
-                            'account in order to use it in CopyFactory API')
+        if (
+            (master_metaapi_account is None)
+            or master_metaapi_account.copy_factory_roles is None
+            or 'PROVIDER' not in master_metaapi_account.copy_factory_roles
+        ):
+            raise Exception(
+                'Please specify PROVIDER copyFactoryRoles value in your MetaApi '
+                'account in order to use it in CopyFactory API'
+            )
 
         slave_metaapi_account = await api.metatrader_account_api.get_account(slave_account_id)
-        if (slave_metaapi_account is None) or slave_metaapi_account.copy_factory_roles is None or 'SUBSCRIBER' not \
-                in slave_metaapi_account.copy_factory_roles:
-            raise Exception('Please specify SUBSCRIBER copyFactoryRoles value in your MetaApi '
-                            'account in order to use it in CopyFactory API')
+        if (
+            (slave_metaapi_account is None)
+            or slave_metaapi_account.copy_factory_roles is None
+            or 'SUBSCRIBER' not in slave_metaapi_account.copy_factory_roles
+        ):
+            raise Exception(
+                'Please specify SUBSCRIBER copyFactoryRoles value in your MetaApi '
+                'account in order to use it in CopyFactory API'
+            )
 
         configuration_api = copy_factory.configuration_api
-        strategies = await configuration_api.get_strategies()
+        strategies = await configuration_api.get_strategies_with_infinite_scroll_pagination()
         strategy = next((s for s in strategies if s['accountId'] == master_metaapi_account.id), None)
         if strategy:
             strategy_id = strategy['_id']
@@ -40,22 +50,20 @@ async def configure_copyfactory():
             strategy_id = strategy_id['id']
 
         # create a strategy being copied
-        await configuration_api.update_strategy(strategy_id, {
-            'name': 'Test strategy',
-            'description': 'Some useful description about your strategy',
-            'accountId': master_metaapi_account.id
-        })
+        await configuration_api.update_strategy(
+            strategy_id,
+            {
+                'name': 'Test strategy',
+                'description': 'Some useful description about your strategy',
+                'accountId': master_metaapi_account.id,
+            },
+        )
 
         # create subscriber
-        await configuration_api.update_subscriber(slave_metaapi_account.id, {
-            'name': 'Test subscriber',
-            'subscriptions': [
-                {
-                    'strategyId': strategy_id,
-                    'multiplier': 1
-                }
-            ]
-        })
+        await configuration_api.update_subscriber(
+            slave_metaapi_account.id,
+            {'name': 'Test subscriber', 'subscriptions': [{'strategyId': strategy_id, 'multiplier': 1}]},
+        )
     except Exception as err:
         print(api.format_error(err))
 

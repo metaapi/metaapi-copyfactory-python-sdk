@@ -11,3 +11,4 @@ dist
 .metaapi
 *.egg-info
 synchronizeManyAccounts
+.DS_Store
