@@ -15,7 +15,7 @@ slave_account_id = os.getenv('SLAVE_ACCOUNT_ID') or '<put in your slaveAccountId
 
 async def configure_copyfactory():
     api = MetaApi(token)
-    copy_factory = CopyFactory(token)
+    copyfactory = CopyFactory(token)
 
     try:
         master_metaapi_account = await api.metatrader_account_api.get_account(master_account_id)
@@ -40,7 +40,7 @@ async def configure_copyfactory():
                 'account in order to use it in CopyFactory API'
             )
 
-        configuration_api = copy_factory.configuration_api
+        configuration_api = copyfactory.configuration_api
         strategies = await configuration_api.get_strategies_with_infinite_scroll_pagination()
         strategy = next((s for s in strategies if s['accountId'] == master_metaapi_account.id), None)
         if strategy:

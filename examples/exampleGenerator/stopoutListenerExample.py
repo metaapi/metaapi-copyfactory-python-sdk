@@ -11,7 +11,7 @@ account_id = os.getenv('SLAVE_ACCOUNT_ID') or '<put in your slaveAccountId here>
 
 async def stopout_example():
     api = MetaApi(token)
-    copy_factory = CopyFactory(token)
+    copyfactory = CopyFactory(token)
 
     class Listener(StopoutListener):
         async def on_stopout(self, strategy_stopout_event):
@@ -23,11 +23,12 @@ async def stopout_example():
     try:
         listener = Listener()
 
-        trading_api = copy_factory.trading_api
+        trading_api = copyfactory.trading_api
         listener_id = trading_api.add_stopout_listener(listener, account_id)
         await asyncio.sleep(300)
         trading_api.remove_stopout_listener(listener_id)
     except Exception as err:
         print(api.format_error(err))
+
 
 asyncio.run(stopout_example())
