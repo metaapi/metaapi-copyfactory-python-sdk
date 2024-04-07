@@ -1,3 +1,6 @@
+10.0.0
+  - breaking change: update httpx dependency to 0.27.0
+
 9.0.1
   - fix broken build
 
