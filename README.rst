@@ -91,9 +91,9 @@ Configuring trade copying
 In order to configure trade copying you need to:
 
 - add MetaApi MetaTrader accounts with CopyFactory as application field value (see above)
-- create CopyFactory master and slave accounts and connect them to MetaApi accounts via connectionId field
+- create CopyFactory provider and subscriber accounts and connect them to MetaApi accounts via connectionId field
 - create a strategy being copied
-- subscribe slave CopyFactory accounts to the strategy
+- subscribe subscriber CopyFactory accounts to the strategy
 
 .. code-block:: python
 
@@ -104,16 +104,16 @@ In order to configure trade copying you need to:
     copy_factory = CopyFactory(token=token)
 
     # retrieve MetaApi MetaTrader accounts with CopyFactory as application field value
-    # master account must have PROVIDER value in copyFactoryRoles
-    master_metaapi_account = await metaapi.metatrader_account_api.get_account(account_id='masterMetaapiAccountId')
-    if (master_metaapi_account is None) or master_metaapi_account.copy_factory_roles is None or 'PROVIDER' not \
-            in master_metaapi_account.copy_factory_roles:
+    # provider account must have PROVIDER value in copyFactoryRoles
+    provider_metaapi_account = await metaapi.metatrader_account_api.get_account(account_id='providerMetaapiAccountId')
+    if (provider_metaapi_account is None) or provider_metaapi_account.copy_factory_roles is None or 'PROVIDER' not \
+            in provider_metaapi_account.copy_factory_roles:
         raise Exception('Please specify PROVIDER copyFactoryRoles value in your MetaApi '
                         'account in order to use it in CopyFactory API')
-    # slave account must have SUBSCRIBER value in copyFactoryRoles
-    slave_metaapi_account = await metaapi.metatrader_account_api.get_account(account_id='slaveMetaapiAccountId')
-    if (slave_metaapi_account is None) or slave_metaapi_account.copy_factory_roles is None or 'SUBSCRIBER' not \
-            in slave_metaapi_account.copy_factory_roles:
+    # subscriber account must have SUBSCRIBER value in copyFactoryRoles
+    subscriber_metaapi_account = await metaapi.metatrader_account_api.get_account(account_id='subscriberMetaapiAccountId')
+    if (subscriber_metaapi_account is None) or subscriber_metaapi_account.copy_factory_roles is None or 'SUBSCRIBER' not \
+            in subscriber_metaapi_account.copy_factory_roles:
         raise Exception('Please specify SUBSCRIBER copyFactoryRoles value in your MetaApi '
                         'account in order to use it in CopyFactory API')
 
@@ -124,7 +124,7 @@ In order to configure trade copying you need to:
     await configuration_api.update_strategy(id=strategy_id['id'], strategy={
         'name': 'Test strategy',
         'description': 'Some useful description about your strategy',
-        'accountId': master_metaapi_account.id,
+        'accountId': provider_metaapi_account.id,
         'maxTradeRisk': 0.1,
         'stopOutRisk': {
             'value': 0.4,
@@ -136,8 +136,8 @@ In order to configure trade copying you need to:
         }
     })
 
-    # subscribe slave CopyFactory accounts to the strategy
-    await configuration_api.update_subscriber(slave_metaapi_account.id, {
+    # subscribe subscriber CopyFactory accounts to the strategy
+    await configuration_api.update_subscriber(subscriber_metaapi_account.id, {
         'name': 'Demo account',
         'subscriptions': [
             {
@@ -228,11 +228,11 @@ Retrieving trading history on subscriber side
     print(await history_api.get_subscription_transactions(time_from=datetime.fromisoformat('2020-08-01'),
         time_till=datetime.fromisoformat('2020-09-01')))
 
-Resynchronizing slave accounts to masters
-=========================================
+Resynchronizing subscriber accounts to providers
+================================================
 There is a configurable time limit during which the trades can be opened. Sometimes trades can not open in time due to broker errors or trading session time discrepancy.
-You can resynchronize a slave account to place such late trades. Please note that positions which were
-closed manually on a slave account will also be reopened during resynchronization.
+You can resynchronize a subscriber account to place such late trades. Please note that positions which were
+closed manually on a subscriber account will also be reopened during resynchronization.
 
 .. code-block:: python
 
@@ -253,11 +253,11 @@ You can submit external trading signals to your trading strategy.
     trading_api = copy_factory.trading_api
     signal_id = trading_api.generate_signal_id()
 
-    # get signal client
-    signal_client = await trading_api.get_signal_client(account_id=account_id)
+    # get strategy signal client
+    strategy_signal_client = await trading_api.get_strategy_signal_client(strategy_id)
 
     # add trading signal
-    await signal_client.update_external_signal(strategy_id=strategy_id, signal_id=signal_id, signal={
+    await strategy_signal_client.update_external_signal(signal_id=signal_id, signal={
         'symbol': 'EURUSD',
         'type': 'POSITION_TYPE_BUY',
         'time': datetime.now(),
@@ -265,10 +265,10 @@ You can submit external trading signals to your trading strategy.
     })
 
     # get external signals
-    print(await signal_client.get_strategy_external_signals(strategy_id))
+    print(await strategy_signal_client.get_external_signals())
 
     # remove signal
-    await signal_client.remove_external_signal(strategy_id=strategy_id, signal_id=signal_id, signal={
+    await strategy_signal_client.remove_external_signal(signal_id=signal_id, signal={
         'time': datetime.now()
     })
 
@@ -278,10 +278,10 @@ Retrieving trading signals
 .. code-block:: python
 
     subscriber_id = '...' # CopyFactory subscriber id
-    signal_client = await trading_api.get_signal_client(account_id=account_id)
+    subscriber_signal_client = await trading_api.get_subscriber_signal_client(subscriber_id)
 
     # retrieve trading signals
-    print(await signal_client.get_trading_signals(subscriber_id))
+    print(await subscriber_signal_client.get_trading_signals())
 
 Managing stopouts
 =================
@@ -327,18 +327,18 @@ You can subscribe to a stream of stopout events using the stopout listener.
     # remove listener
     trading_api.remove_stopout_listener(listener_id)
 
-Retrieving slave trading logs
-=============================
+Retrieving subscriber trading logs
+==================================
 
 .. code-block:: python
 
     trading_api = copy_factory.trading_api
     account_id = '...' # CopyFactory account id
 
-    # retrieve slave trading log
+    # retrieve subscriber trading log
     print(await trading_api.get_user_log(account_id))
 
-    # retrieve paginated slave trading log by time range
+    # retrieve paginated subscriber trading log by time range
     print(await trading_api.get_user_log(account_id, datetime.fromtimestamp(datetime.now().timestamp() - 24 * 60 * 60), None, 20, 10))
 
 Log streaming

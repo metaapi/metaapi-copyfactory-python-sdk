@@ -1,3 +1,9 @@
+11.0.2
+  - fix terminology
+
+11.0.0
+  - breaking change: separated provider and strategy related signal clients
+
 10.0.0
   - breaking change: update httpx dependency to 0.27.0
 
