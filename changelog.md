@@ -1,3 +1,6 @@
+11.0.3
+  - fix config
+
 11.0.2
   - fix terminology
 
