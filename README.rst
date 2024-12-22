@@ -457,6 +457,30 @@ Subscriber transactions
     # remove listener
     history_api.remove_subscriber_transaction_listener(listener_id)
 
+Webhooks
+========
+
+Webhooks can be created on specific strategies and their URLs can be provided to external systems to create external trading signals. The URL contains a secret webhook ID, so no extra authorization is required on a REST API invocation to a webhook.
+
+.. code-block:: python
+
+    strategy_id = '...'
+
+    webhook = await copyfactory.configuration_api.create_webhook(strategy_id)
+    url = webhook['url']
+
+For example, if ``webhook.url`` is ``https://copyfactory-api-v1.london.agiliumtrade.ai/webhooks/yMLd8aviewgFfS4NBxZETkoVPbWAJ92t`` then a request can be sent to it to create an external signal:
+
+.. code-block:: bash
+
+    curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+      "symbol": "EURUSD",
+      "type": "POSITION_TYPE_BUY",
+      "time": "2024-12-19T06:52:19.679Z",
+      "volume": 0.1
+    }' 'https://copyfactory-api-v1.london.agiliumtrade.ai/webhooks/yMLd8aviewgFfS4NBxZETkoVPbWAJ92t'
+
+
 Related projects:
 =================
 

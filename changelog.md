@@ -1,3 +1,6 @@
+11.1.0
+  - add webhooks API
+
 11.0.3
   - fix config
 
