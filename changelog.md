@@ -1,3 +1,6 @@
+11.1.1
+  - updated docs
+
 11.1.0
   - add webhooks API
 
