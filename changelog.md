@@ -1,3 +1,6 @@
+12.0.0
+  - breaking change: update httpx dependency to 0.28.0
+
 11.1.1
   - updated docs
 
